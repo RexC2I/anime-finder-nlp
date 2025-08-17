@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnimeFinder - Intelligent Anime Recommendations</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-theme="dark">
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">AnimeFinder</h1>
+            <div style="display: flex; align-items: center;">
+                <a href="https://buymeacoffee.com/rexcci" target="_blank" class="coffee-cta">
+                    ☕ Buy me a coffee
+                </a>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span id="theme-icon">🌙</span>
+                    <span id="theme-text">Light Mode</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="api-status warning" id="apiStatus">
+            ⚠️ Currently using demo data due to CORS restrictions. For full functionality, this needs to be hosted on a server with proper API proxy.
+        </div>
+
+        <div class="search-section">
+            <p class="search-subtitle">Describe what you're looking for, and we'll find the perfect anime for you</p>
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput"
+                    placeholder="Try: 'medieval fantasy with magic and friendship' or 'dark horror vampire bloody'"
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button class="search-btn" onclick="searchAnime()" id="searchBtn">
+                    Search
+                </button>
+            </div>
+            <div class="examples">
+                <span class="example-chip" onclick="setExample('medieval fantasy with magic and friendship')">Medieval Fantasy</span>
+                <span class="example-chip" onclick="setExample('dark horror vampire bloody')">Dark Horror</span>
+                <span class="example-chip" onclick="setExample('school romance comedy')">School Romance</span>
+                <span class="example-chip" onclick="setExample('mecha robots space war')">Mecha Space</span>
+                <span class="example-chip" onclick="setExample('slice of life friendship')">Slice of Life</span>
+                <span class="example-chip" onclick="setExample('psychological thriller mind games')">Psychological</span>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+        
+        <div id="loadingIndicator" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Finding the perfect anime for you...</p>
+        </div>
+
+        <div id="results" class="results"></div>
+        
+        <div class="status-message" id="statusMessage" style="display: none;"></div>
+    </div>
+
+    <!-- Load JavaScript files -->
+    <script src="js/anime-data.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>

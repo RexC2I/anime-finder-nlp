@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnimeFinder - Intelligent Anime Recommendations</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent: #6366f1;
+            --accent-hover: #5855eb;
+            --border: #333333;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent: #6366f1;
+            --accent-hover: #5855eb;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .theme-toggle {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            padding: 8px 16px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-tertiary);
+            transform: translateY(-1px);
+        }
+
+        .search-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .search-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 1.1rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .search-btn:hover:not(:disabled) {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translateY(-50%);
+        }
+
+        .examples {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .example-chip {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .example-chip:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .result-item {
+            display: flex;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            border-color: var(--accent);
+        }
+
+        .anime-poster {
+            width: 120px;
+            height: 170px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-right: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            transition: opacity 0.3s ease, transform 0.2s ease;
+        }
+
+        .anime-poster:hover {
+            transform: scale(1.05);
+        }
+
+        .anime-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .anime-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            line-height: 1.2;
+            word-wrap: break-word;
+        }
+
+        .anime-title-secondary {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            line-height: 1.3;
+            word-wrap: break-word;
+        }
+
+        .anime-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .rating {
+            background: var(--success);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .rating.high { background: var(--success); }
+        .rating.medium { background: var(--warning); }
+        .rating.low { background: var(--error); }
+
+        .genres {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .genre-tag {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .anime-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .match-score {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .error-message {
+            background: var(--error);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status-message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .api-status {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .api-status.warning {
+            border-color: var(--warning);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .result-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .anime-poster {
+                width: 100px;
+                height: 142px;
+                margin: 0 auto 15px;
+            }
+            
+            .anime-meta {
+                justify-content: center;
+            }
+
+            .match-score {
+                position: static;
+                margin: 10px auto 0;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">AnimeFinder</h1>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span id="theme-icon">🌙</span>
+                <span id="theme-text">Light Mode</span>
+            </button>
+        </header>
+
+        <div class="api-status warning" id="apiStatus">
+            ⚠️ Currently using demo data due to CORS restrictions. For full functionality, this needs to be hosted on a server with proper API proxy.
+        </div>
+
+        <div class="search-section">
+            <p class="search-subtitle">Describe what you're looking for, and we'll find the perfect anime for you</p>
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput"
+                    placeholder="Try: 'medieval fantasy with magic and friendship' or 'dark horror vampire bloody'"
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button class="search-btn" onclick="searchAnime()" id="searchBtn">
+                    Search
+                </button>
+            </div>
+            <div class="examples">
+                <span class="example-chip" onclick="setExample('medieval fantasy with magic and friendship')">Medieval Fantasy</span>
+                <span class="example-chip" onclick="setExample('dark horror vampire bloody')">Dark Horror</span>
+                <span class="example-chip" onclick="setExample('school romance comedy')">School Romance</span>
+                <span class="example-chip" onclick="setExample('mecha robots space war')">Mecha Space</span>
+                <span class="example-chip" onclick="setExample('slice of life friendship')">Slice of Life</span>
+                <span class="example-chip" onclick="setExample('psychological thriller mind games')">Psychological</span>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+        
+        <div id="loadingIndicator" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Finding the perfect anime for you...</p>
+        </div>
+
+        <div id="results" class="results"></div>
+        
+        <div class="status-message" id="statusMessage" style="display: none;"></div>
+    </div>
+
+    <script>
+        let isSearching = false;
+
+        // Demo anime database (comprehensive dataset for testing)
+        const DEMO_ANIME_DATABASE = [
+            {
+                id: 1,
+                title: "Overlord",
+                titleSecondary: "Overlord",
+                genres: ["Action", "Adventure", "Fantasy", "Supernatural"],
+                tags: ["Magic", "Medieval", "Isekai", "Dark Fantasy", "Undead", "Kingdom Building", "Overpowered Protagonist", "Evil Protagonist"],
+                description: "A powerful wizard finds himself trapped in a game world as an undead overlord, commanding loyal NPCs while exploring this new reality and building his dominion.",
+                image: "https://cdn.myanimelist.net/images/anime/3/72653.jpg",
+                score: 7.8,
+                episodes: 39,
+                status: "Finished",
+                year: 2015,
+                type: "TV"
+            },
+            {
+                id: 2,
+                title: "KonoSuba: God's Blessing on This Wonderful World!",
+                titleSecondary: "Kono Subarashii Sekai ni Shukufuku wo!",
+                genres: ["Adventure", "Comedy", "Fantasy", "Supernatural"],
+                tags: ["Isekai", "Magic", "Comedy", "Friendship", "Parody", "Adventure", "Medieval", "Goddess", "Party", "Explosion"],
+                description: "A boy is transported to a fantasy world with a useless goddess and must defeat the demon king while dealing with his dysfunctional party members.",
+                image: "https://cdn.myanimelist.net/images/anime/8/77831.jpg",
+                score: 8.2,
+                episodes: 30,
+                status: "Finished",
+                year: 2016,
+                type: "TV"
+            },
+            {
+                id: 3,
+                title: "Re:Zero - Starting Life in Another World",
+                titleSecondary: "Re:Zero kara Hajimeru Isekai Seikatsu",
+                genres: ["Drama", "Fantasy", "Psychological", "Thriller"],
+                tags: ["Isekai", "Magic", "Time Loop", "Medieval", "Dark", "Psychological", "Death", "Suffering", "Mystery", "Witch"],
+                description: "A boy is transported to a fantasy world where he discovers he can return to life after death, but must relive traumatic events to save those he cares about.",
+                image: "https://cdn.myanimelist.net/images/anime/11/79410.jpg",
+                score: 8.3,
+                episodes: 50,
+                status: "Finished",
+                year: 2016,
+                type: "TV"
+            },
+            {
+                id: 4,
+                title: "Attack on Titan",
+                titleSecondary: "Shingeki no Kyojin",
+                genres: ["Action", "Drama", "Horror", "Supernatural"],
+                tags: ["Military", "Dark", "Gore", "Survival", "Mystery", "Titans", "Medieval", "Bloody", "Violence", "Post-Apocalyptic"],
+                description: "Humanity lives behind walls to protect themselves from giant humanoid Titans, but when the walls are breached, a young soldier vows to eliminate all Titans.",
+                image: "https://cdn.myanimelist.net/images/anime/10/47347.jpg",
+                score: 9.0,
+                episodes: 75,
+                status: "Finished",
+                year: 2013,
+                type: "TV"
+            },
+            {
+                id: 5,
+                title: "Demon Slayer",
+                titleSecondary: "Kimetsu no Yaiba",
+                genres: ["Action", "Historical", "Supernatural"],
+                tags: ["Demons", "Sword Fighting", "Family", "Friendship", "Historical", "Dark", "Shonen", "Brother Sister", "Training"],
+                description: "A young boy becomes a demon slayer to save his sister who has been turned into a demon, while fighting against powerful demons that threaten humanity.",
+                image: "https://cdn.myanimelist.net/images/anime/1286/99889.jpg",
+                score: 8.7,
+                episodes: 32,
+                status: "Finished",
+                year: 2019,
+                type: "TV"
+            },
+            {
+                id: 6,
+                title: "Vampire Knight",
+                titleSecondary: "Vampire Knight",
+                genres: ["Drama", "Romance", "Supernatural", "Vampire"],
+                tags: ["Vampire", "Blood", "Romance", "School", "Dark", "Gothic", "Love Triangle", "Shoujo", "Mysterious"],
+                description: "A girl attends a boarding school where vampires and humans coexist, but dark secrets and forbidden love complicate her world.",
+                image: "https://cdn.myanimelist.net/images/anime/10/14852.jpg",
+                score: 6.8,
+                episodes: 26,
+                status: "Finished",
+                year: 2008,
+                type: "TV"
+            },
+            {
+                id: 7,
+                title: "Hellsing Ultimate",
+                titleSecondary: "Hellsing Ultimate",
+                genres: ["Action", "Horror", "Supernatural", "Vampire"],
+                tags: ["Vampire", "Blood", "Gore", "Dark", "Violence", "Anti-Hero", "Bloody", "Guns", "Nazi", "Horror"],
+                description: "The Hellsing Organization fights supernatural threats with the help of Alucard, a powerful vampire, in this dark and bloody series.",
+                image: "https://cdn.myanimelist.net/images/anime/3/40897.jpg",
+                score: 8.4,
+                episodes: 10,
+                status: "Finished",
+                year: 2006,
+                type: "OVA"
+            },
+            {
+                id: 8,
+                title: "Seraph of the End",
+                titleSecondary: "Owari no Seraph",
+                genres: ["Action", "Drama", "Supernatural", "Vampire"],
+                tags: ["Vampire", "Military", "Apocalypse", "Friendship", "Dark", "Revenge", "Blood", "Post-Apocalyptic", "Shonen"],
+                description: "After a virus kills all adults, vampires emerge to rule over the remaining children, but some humans fight back for freedom and revenge.",
+                image: "https://cdn.myanimelist.net/images/anime/5/71909.jpg",
+                score: 7.4,
+                episodes: 24,
+                status: "Finished",
+                year: 2015,
+                type: "TV"
+            },
+            {
+                id: 9,
+                title: "My Hero Academia",
+                titleSecondary: "Boku no Hero Academia",
+                genres: ["Action", "School", "Shounen", "Superhero"],
+                tags: ["School", "Superhero", "Friendship", "Training", "Competition", "Powers", "Hero", "Coming of Age", "Shonen"],
+                description: "In a world where most people have superpowers, a powerless boy enrolls in a prestigious hero academy to become the greatest hero.",
+                image: "https://cdn.myanimelist.net/images/anime/10/78745.jpg",
+                score: 8.5,
+                episodes: 138,
+                status: "Ongoing",
+                year: 2016,
+                type: "TV"
+            },
+            {
+                id: 10,
+                title: "Toradora!",
+                titleSecondary: "Toradora!",
+                genres: ["Comedy", "Drama", "Romance", "School"],
+                tags: ["School", "Romance", "Comedy", "Love Triangle", "Slice of Life", "Tsundere", "High School", "Coming of Age"],
+                description: "A gentle guy with scary eyes and a small but fierce girl help each other pursue their respective crushes, but end up falling for each other.",
+                image: "https://cdn.myanimelist.net/images/anime/13/22128.jpg",
+                score: 8.1,
+                episodes: 25,
+                status: "Finished",
+                year: 2008,
+                type: "TV"
+            },
+            {
+                id: 11,
+                title: "Neon Genesis Evangelion",
+                titleSecondary: "Shinseiki Evangelion",
+                genres: ["Action", "Drama", "Mecha", "Psychological"],
+                tags: ["Mecha", "Psychological", "Angels", "Post-Apocalyptic", "Mind Games", "Dark", "Depression", "Complex", "Giant Robots"],
+                description: "Teenagers pilot giant mechs to fight mysterious beings called Angels while dealing with psychological trauma and existential questions.",
+                image: "https://cdn.myanimelist.net/images/anime/10/20723.jpg",
+                score: 8.5,
+                episodes: 26,
+                status: "Finished",
+                year: 1995,
+                type: "TV"
+            },
+            {
+                id: 12,
+                title: "Code Geass",
+                titleSecondary: "Code Geass: Lelouch of the Rebellion",
+                genres: ["Drama", "Mecha", "Military", "Thriller"],
+                tags: ["Mecha", "Military", "Strategy", "Supernatural Power", "Politics", "Anti-Hero", "Mind Control", "Rebellion", "War"],
+                description: "A prince gains a supernatural power and leads a rebellion against his own empire using strategy, mechs, and political manipulation.",
+                image: "https://cdn.myanimelist.net/images/anime/5/50331.jpg",
+                score: 8.9,
+                episodes: 50,
+                status: "Finished",
+                year: 2006,
+                type: "TV"
+            },
+            {
+                id: 13,
+                title: "Mobile Suit Gundam",
+                titleSecondary: "Mobile Suit Gundam",
+                genres: ["Action", "Drama", "Mecha", "Military", "Space"],
+                tags: ["Mecha", "Space War", "Military", "Politics", "War", "Giant Robots", "Space", "Colony", "Classic"],
+                description: "In a future where humans have colonized space, a war breaks out between Earth and space colonies, fought with giant robots called mobile suits.",
+                image: "https://cdn.myanimelist.net/images/anime/9/20936.jpg",
+                score: 7.8,
+                episodes: 43,
+                status: "Finished",
+                year: 1979,
+                type: "TV"
+            },
+            {
+                id: 14,
+                title: "K-On!",
+                titleSecondary: "K-On!",
+                genres: ["Comedy", "Music", "School", "Slice of Life"],
+                tags: ["Music", "School", "Friendship", "Slice of Life", "Comedy", "Band", "Moe", "Cute Girls", "Light-hearted"],
+                description: "Four high school girls form a light music club and learn to play instruments while enjoying their daily school life and building friendships.",
+                image: "https://cdn.myanimelist.net/images/anime/10/76121.jpg",
+                score: 7.8,
+                episodes: 39,
+                status: "Finished",
+                year: 2009,
+                type: "TV"
+            },
+            {
+                id: 15,
+                title: "Monster",
+                titleSecondary: "Monster",
+                genres: ["Drama", "Horror", "Mystery", "Psychological", "Thriller"],
+                tags: ["Psychological", "Thriller", "Serial Killer", "Mind Games", "Medical", "Dark", "Mystery", "Crime", "Mature"],
+                description: "A Japanese neurosurgeon becomes involved in a series of murders connected to a former patient, leading him into a psychological cat-and-mouse game.",
+                image: "https://cdn.myanimelist.net/images/anime/10/18793.jpg",
+                score: 9.1,
+                episodes: 74,
+                status: "Finished",
+                year: 2004,
+                type: "TV"
+            },
+            {
+                id: 16,
+                title: "Death Note",
+                titleSecondary: "Death Note",
+                genres: ["Drama", "Psychological", "Supernatural", "Thriller"],
+                tags: ["Psychological", "Mind Games", "Death", "Supernatural", "Cat and Mouse", "Dark", "Genius", "Detective", "Thriller"],
+                description: "A high school student finds a notebook that can kill anyone whose name is written in it, leading to a psychological battle with a detective.",
+                image: "https://cdn.myanimelist.net/images/anime/9/9453.jpg",
+                score: 8.6,
+                episodes: 37,
+                status: "Finished",
+                year: 2006,
+                type: "TV"
+            },
+            {
+                id: 17,
+                title: "Your Name",
+                titleSecondary: "Kimi no Na wa",
+                genres: ["Drama", "Romance", "Supernatural"],
+                tags: ["Body Swap", "Romance", "Time", "Rural", "Urban", "Friendship", "Beautiful Animation", "Emotional", "Movie"],
+                description: "Two teenagers share a profound, magical connection when they begin swapping bodies, leading to an extraordinary journey across space and time.",
+                image: "https://cdn.myanimelist.net/images/anime/5/87048.jpg",
+                score: 8.4,
+                episodes: 1,
+                status: "Finished",
+                year: 2016,
+                type: "Movie"
+            },
+            {
+                id: 18,
+                title: "Spirited Away",
+                titleSecondary: "Sen to Chihiro no Kamikakushi",
+                genres: ["Adventure", "Family", "Fantasy", "Supernatural"],
+                tags: ["Magic", "Spirits", "Adventure", "Coming of Age", "Fantasy World", "Studio Ghibli", "Classic", "Family-Friendly"],
+                description: "A young girl becomes trapped in a magical world of spirits and must work at a bathhouse to save her parents and find her way home.",
+                image: "https://cdn.myanimelist.net/images/anime/6/79597.jpg",
+                score: 9.3,
+                episodes: 1,
+                status: "Finished",
+                year: 2001,
+                type: "Movie"
+            },
+            {
+                id: 19,
+                title: "Haikyuu!!",
+                titleSecondary: "Haikyuu!!",
+                genres: ["Comedy", "Drama", "School", "Sports"],
+                tags: ["Volleyball", "School", "Friendship", "Tournament", "Sports", "Teamwork", "Competition", "Shonen", "Training"],
+                description: "A short boy joins his high school volleyball team and aims to become a great player despite his height disadvantage.",
+                image: "https://cdn.myanimelist.net/images/anime/7/76014.jpg",
+                score: 8.7,
+                episodes: 85,
+                status: "Finished",
+                year: 2014,
+                type: "TV"
+            },
+            {
+                id: 20,
+                title: "One Piece",
+                titleSecondary: "One Piece",
+                genres: ["Action", "Adventure", "Comedy", "Drama", "Shounen"],
+                tags: ["Pirates", "Adventure", "Friendship", "Powers", "Ocean", "Treasure Hunt", "Long Running", "Shonen", "Epic"],
+                description: "A young pirate captain gathers a diverse crew as they sail the Grand Line in search of the ultimate treasure known as One Piece.",
+                image: "https://cdn.myanimelist.net/images/anime/6/73245.jpg",
+                score: 9.0,
+                episodes: 1000,
+                status: "Ongoing",
+                year: 1999,
+                type: "TV"
+            }
+        ];
+
+        // Enhanced NLP Query Parser with better keyword matching
+        class AnimeQueryParser {
+            constructor() {
+                this.genreKeywords = {
+                    'action': ['action', 'fighting', 'combat', 'battle', 'war', 'warrior', 'fight', 'martial', 'violence', 'violent'],
+                    'adventure': ['adventure', 'journey', 'quest', 'exploration', 'travel', 'expedition', 'pirates', 'explore'],
+                    'comedy': ['comedy', 'funny', 'humor', 'humorous', 'hilarious', 'jokes', 'lighthearted', 'parody', 'laugh', 'fun'],
+                    'drama': ['drama', 'emotional', 'serious', 'tragic', 'melodrama', 'heartbreak', 'family', 'intense'],
+                    'fantasy': ['fantasy', 'magic', 'magical', 'wizard', 'dragon', 'medieval', 'kingdom', 'knight', 'elf', 'dwarf', 'spell', 'enchanted', 'mythical', 'fairy', 'sorcery'],
+                    'horror': ['horror', 'scary', 'frightening', 'terrifying', 'creepy', 'nightmare', 'monster', 'demon', 'ghost', 'bloody', 'gore', 'dark', 'twisted'],
+                    'romance': ['romance', 'love', 'romantic', 'relationship', 'dating', 'couple', 'heartwarming', 'kiss', 'confession'],
+                    'sci-fi': ['sci-fi', 'science fiction', 'futuristic', 'space', 'technology', 'robot', 'cyberpunk', 'alien', 'time travel', 'future'],
+                    'slice of life': ['slice of life', 'daily life', 'everyday', 'realistic', 'normal', 'mundane', 'school life', 'relaxing'],
+                    'sports': ['sports', 'athletic', 'competition', 'tournament', 'team', 'baseball', 'soccer', 'basketball', 'volleyball', 'training'],
+                    'supernatural': ['supernatural', 'ghost', 'spirit', 'paranormal', 'otherworldly', 'mystical', 'demon', 'angel', 'undead', 'powers'],
+                    'thriller': ['thriller', 'suspense', 'tension', 'mystery', 'detective', 'crime', 'investigation', 'suspenseful'],
+                    'psychological': ['psychological', 'mind game', 'mental', 'manipulation', 'twisted', 'complex', 'serial killer', 'mind', 'psycho'],
+                    'mecha': ['mecha', 'robot', 'giant robot', 'gundam', 'mechanical', 'robots', 'pilot', 'machine'],
+                    'music': ['music', 'musical', 'singing', 'instrument', 'band', 'idol', 'concert', 'song', 'musician'],
+                    'military': ['military', 'army', 'soldier', 'marine', 'combat unit', 'battlefield', 'war', 'tactical'],
+                    'school': ['school', 'academy', 'student', 'classroom', 'high school', 'university', 'college', 'campus'],
+                    'vampire': ['vampire', 'blood', 'undead', 'immortal', 'bite', 'vampiric', 'dracula', 'bloodsucker']
+                };
+            }
+
+            parseQuery(query) {
+                const normalizedQuery = query.toLowerCase();
+                const words = normalizedQuery.split(/\s+/);
+                const matchedGenres = [];
+                const matchedTags = [];
+
+                // Check for genre matches
+                for (const [genre, keywords] of Object.entries(this.genreKeywords)) {
+                    for (const keyword of keywords) {
+                        if (normalizedQuery.includes(keyword)) {
+                            matchedGenres.push(genre);
+                            break;
+                        }
+                    }
+                }
+
+                // Check for tag matches
+                for (const anime of DEMO_ANIME_DATABASE) {
+                    for (const tag of anime.tags) {
+                        if (normalizedQuery.includes(tag.toLowerCase())) {
+                            matchedTags.push(tag);
+                        }
+                    }
+                }
+
+                return {
+                    genres: [...new Set(matchedGenres)],
+                    tags: [...new Set(matchedTags)],
+                    words: words
+                };
+            }
+        }
+
+        // Search and display functions
+        function searchAnime() {
+            console.log('searchAnime function called');
+            const query = document.getElementById('searchInput').value.trim();
+            console.log('Search query:', query);
+            
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+
+            if (query.length < 2) {
+                showError('Please enter at least 2 characters');
+                return;
+            }
+
+            if (isSearching) return;
+            isSearching = true;
+
+            // Show loading
+            showLoading(true);
+            hideError();
+            clearResults();
+
+            // Simulate API delay
+            setTimeout(() => {
+                try {
+                    const results = performSearch(query);
+                    displayResults(results);
+                    showLoading(false);
+                    isSearching = false;
+                } catch (error) {
+                    showError('An error occurred while searching');
+                    showLoading(false);
+                    isSearching = false;
+                }
+            }, 1000);
+        }
+
+        function performSearch(query) {
+            const parser = new AnimeQueryParser();
+            const parsedQuery = parser.parseQuery(query);
+            
+            const results = DEMO_ANIME_DATABASE.map(anime => {
+                let score = 0;
+                
+                // Genre matching (highest priority)
+                for (const genre of parsedQuery.genres) {
+                    if (anime.genres.some(g => g.toLowerCase() === genre)) {
+                        score += 6; // Increased weight for genre matches
+                    }
+                }
+                
+                // Tag matching (high priority)
+                for (const tag of parsedQuery.tags) {
+                    if (anime.tags.some(t => t.toLowerCase() === tag.toLowerCase())) {
+                        score += 3;
+                    }
+                }
+                
+                // Exact title matching (very high priority)
+                if (anime.title.toLowerCase().includes(query.toLowerCase()) || 
+                    anime.titleSecondary.toLowerCase().includes(query.toLowerCase())) {
+                    score += 5;
+                }
+                
+                // Word matching in title and description
+                for (const word of parsedQuery.words) {
+                    if (word.length > 2) {
+                        if (anime.title.toLowerCase().includes(word)) score += 2;
+                        if (anime.titleSecondary.toLowerCase().includes(word)) score += 2;
+                        if (anime.description.toLowerCase().includes(word)) score += 1;
+                    }
+                }
+                
+                // Bonus for high-rated anime
+                if (anime.score >= 8.5) score += 0.5;
+                
+                return { ...anime, matchScore: score };
+            }).filter(anime => anime.matchScore >= 2) // Minimum threshold to avoid very weak matches
+              .sort((a, b) => b.matchScore - a.matchScore)
+              .slice(0, 10);
+
+            return results;
+        }
+
+        function displayResults(results) {
+            const resultsContainer = document.getElementById('results');
+            
+            if (results.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <h3>No anime found</h3>
+                        <p>Try different keywords or be more specific in your search. You can also try searching for genres like "action", "romance", "fantasy", etc.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsContainer.innerHTML = results.map(anime => {
+                // Validate image URL and provide fallback
+                const imageUrl = anime.image && anime.image.trim() ? anime.image : '';
+                const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE3MCIgdmlld0JveD0iMCAwIDEyMCAxNzAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTcwIiBmaWxsPSIjMmEyYTI5Ii8+Cjx0ZXh0IHg9IjYwIiB5PSI4NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Tm8gSW1hZ2U8L3RleHQ+Cjwvc3ZnPgo=';
+                
+                // Normalize match score to max 100%
+                const normalizedScore = Math.min(anime.matchScore * 10, 100);
+                
+                return `
+                <div class="result-item">
+                    <img src="${imageUrl}" alt="${anime.title}" class="anime-poster" 
+                         onerror="this.src='${fallbackImage}'" 
+                         onload="this.style.opacity='1'"
+                         style="opacity: 0; transition: opacity 0.3s ease;">
+                    <div class="anime-details">
+                        <h3 class="anime-title">${anime.title}</h3>
+                        ${anime.titleSecondary !== anime.title ? `<p class="anime-title-secondary">${anime.titleSecondary}</p>` : ''}
+                        <div class="anime-meta">
+                            <span class="meta-item">
+                                <span class="rating ${getRatingClass(anime.score)}">${anime.score}</span>
+                            </span>
+                            <span class="meta-item">📺 ${anime.episodes} episodes</span>
+                            <span class="meta-item">📅 ${anime.year}</span>
+                            <span class="meta-item">🎬 ${anime.type}</span>
+                            <span class="meta-item">📊 ${anime.status}</span>
+                        </div>
+                        <div class="genres">
+                            ${anime.genres.map(genre => `<span class="genre-tag">${genre}</span>`).join('')}
+                        </div>
+                        <p class="anime-description">${anime.description}</p>
+                    </div>
+                    <div class="match-score">${Math.round(normalizedScore)}% match</div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function getRatingClass(score) {
+            if (score >= 8.5) return 'high';
+            if (score >= 7.0) return 'medium';
+            return 'low';
+        }
+
+        function setExample(text) {
+            document.getElementById('searchInput').value = text;
+            document.getElementById('searchInput').focus();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                searchAnime();
+            }
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            const themeText = document.getElementById('theme-text');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.setAttribute('data-theme', 'light');
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+            }
+        }
+
+        function showLoading(show) {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const searchBtn = document.getElementById('searchBtn');
+            
+            if (show) {
+                loadingIndicator.style.display = 'block';
+                searchBtn.disabled = true;
+                searchBtn.textContent = 'Searching...';
+            } else {
+                loadingIndicator.style.display = 'none';
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Search';
+            }
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function hideError() {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.style.display = 'none';
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

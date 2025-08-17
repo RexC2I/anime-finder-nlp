@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Test</title>
+</head>
+<body>
+    <h1>Search Test</h1>
+    <input type="text" id="searchInput" placeholder="Enter search term">
+    <button onclick="testSearch()">Test Search</button>
+    <div id="results"></div>
+
+    <script>
+        // Test the search function
+        function testSearch() {
+            const query = document.getElementById('searchInput').value;
+            console.log('Search query:', query);
+            
+            // Test if the searchAnime function exists
+            if (typeof searchAnime === 'function') {
+                console.log('searchAnime function exists');
+                searchAnime();
+            } else {
+                console.log('searchAnime function NOT found');
+                document.getElementById('results').innerHTML = '<p>searchAnime function not found!</p>';
+            }
+        }
+
+        // Test if we can access the main file's functions
+        console.log('Test page loaded');
+    </script>
+</body>
+</html>
